@@ -509,6 +509,10 @@ require('lazy').setup({
         -- },
         -- pickers = {}
         defaults = {
+          -- Disable treesitter highlighting in preview to avoid ft_to_lang error on 0.1.x
+          preview = {
+            treesitter = false,
+          },
           -- Custom path display that prioritizes showing the filename
           path_display = function(opts, path)
             local tail = require("telescope.utils").path_tail(path)
