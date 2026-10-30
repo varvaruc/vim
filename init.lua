@@ -1608,10 +1608,12 @@ vim.lsp.config('copilot', {
 vim.lsp.enable('copilot')
 vim.lsp.inline_completion.enable()
 
--- Alt-l accepts the current Copilot suggestion (Tab stays free for completion menus)
-vim.keymap.set('i', '<M-l>', function()
-  vim.lsp.inline_completion.get()
-end, { desc = 'Accept Copilot inline suggestion' })
+-- Tab accepts the Copilot inline suggestion if one is shown, otherwise inserts a normal Tab
+vim.keymap.set('i', '<Tab>', function()
+  if not vim.lsp.inline_completion.get() then
+    return '<Tab>'
+  end
+end, { expr = true, desc = 'Accept Copilot suggestion or Tab' })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
