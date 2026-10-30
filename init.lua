@@ -779,7 +779,7 @@ require('lazy').setup({
     {
       "CopilotC-Nvim/CopilotChat.nvim",
       dependencies = {
-        { "github/copilot.vim" },                       -- or zbirenbaum/copilot.lua
+        { "github/copilot.vim", init = function() vim.g.copilot_enabled = false end }, -- auth only; inline suggestions come from the native LSP below
         { "nvim-lua/plenary.nvim", branch = "master" }, -- for curl, log and async functions
       },
       build = "make tiktoken",                          -- Only on MacOS or Linux
@@ -1591,6 +1591,27 @@ require('lazy').setup({
     },
   },
 })
+
+-- Copilot inline completion via Neovim's native LSP (0.12+), replacing copilot.vim's suggestions.
+-- Requires: npm i -g @github/copilot-language-server ; sign in with :LspCopilotSignIn (nvim-lspconfig)
+-- copilot.vim is kept only because CopilotChat uses it for authentication.
+local nvim_version = vim.version()
+vim.lsp.config('copilot', {
+  cmd = { 'copilot-language-server', '--stdio' },
+  root_markers = { '.git' },
+  init_options = {
+    editorInfo = { name = 'Neovim', version = string.format('%d.%d.%d', nvim_version.major, nvim_version.minor, nvim_version.patch) },
+    editorPluginInfo = { name = 'Neovim', version = string.format('%d.%d.%d', nvim_version.major, nvim_version.minor, nvim_version.patch) },
+  },
+  settings = { telemetry = { telemetryLevel = 'off' } },
+})
+vim.lsp.enable('copilot')
+vim.lsp.inline_completion.enable()
+
+-- Alt-l accepts the current Copilot suggestion (Tab stays free for completion menus)
+vim.keymap.set('i', '<M-l>', function()
+  vim.lsp.inline_completion.get()
+end, { desc = 'Accept Copilot inline suggestion' })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
