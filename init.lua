@@ -291,6 +291,9 @@ end, { noremap = true, silent = true, desc = "Toggle word wrap" })
 
 vim.keymap.set('n', '<leader>m', function() require('monolithic').open() end, { desc = 'Open monolithic.nvim' })
 
+-- Undotree is built into Neovim 0.12+ (replaces the jiaoshijie/undotree plugin)
+vim.keymap.set('n', '<leader>u', '<cmd>Undotree<cr>', { desc = 'Toggle [U]ndotree' })
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -449,7 +452,7 @@ require('lazy').setup({
   { -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
     event = 'VimEnter',
-    branch = '0.1.x',
+    version = '*', -- latest release tag (was pinned to the 0.1.x branch)
     dependencies = {
       {
         "nvim-telescope/telescope-live-grep-args.nvim",
@@ -639,14 +642,6 @@ require('lazy').setup({
     },
   },
   {
-    'jiaoshijie/undotree',
-    dependencies = 'nvim-lua/plenary.nvim',
-    config = true,
-    keys = { -- load the plugin only when using it's keybinding:
-      { '<leader>u', "<cmd>lua require('undotree').toggle()<cr>" },
-    },
-  },
-  {
     'stevearc/conform.nvim',
     event = { 'BufReadPre', 'BufNewFile' }, -- Load on file open
     config = function()
@@ -742,7 +737,7 @@ require('lazy').setup({
         preview = true
       },
     },
-    dependencies = { { "echasnovski/mini.icons", opts = {} } },
+    dependencies = { { "nvim-mini/mini.icons", opts = {} } },
     -- dependencies = { 'nvim-tree/nvim-web-devicons' }, -- Optional for icons
   },
   {
@@ -849,7 +844,7 @@ require('lazy').setup({
       -- Only one of these is needed.
       "nvim-telescope/telescope.nvim", -- optional
       "ibhagwan/fzf-lua",              -- optional
-      "echasnovski/mini.pick",         -- optional
+      "nvim-mini/mini.pick",         -- optional
     },
     -- set up leader ng for neogit
     keys = { { "<leader>ng", ":Neogit<CR>", desc = "Neogit" } },
@@ -1013,8 +1008,8 @@ require('lazy').setup({
       -- Automatically install LSPs and related tools to stdpath for Neovim
       -- Mason must be loaded before its dependents so we need to set it up here.
       -- NOTE: `opts = {}` is the same as calling `require('mason').setup({})`
-      { 'williamboman/mason.nvim', opts = {} },
-      'williamboman/mason-lspconfig.nvim',
+      { 'mason-org/mason.nvim', opts = {} },
+      'mason-org/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
 
       -- Useful status updates for LSP.
@@ -1264,19 +1259,19 @@ require('lazy').setup({
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
+      -- Neovim 0.11+ native config: apply capabilities to every server, then
+      -- per-server overrides from `servers` above. mason-lspconfig v2 enables
+      -- the installed servers itself (automatic_enable), so the old `handlers`
+      -- callback is no longer used (it was silently ignored in v2).
+      vim.lsp.config('*', { capabilities = capabilities })
+      for server_name, server in pairs(servers) do
+        vim.lsp.config(server_name, server)
+      end
+
       require('mason-lspconfig').setup {
         ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
         automatic_installation = false,
-        handlers = {
-          function(server_name)
-            local server = servers[server_name] or {}
-            -- This handles overriding only values explicitly passed
-            -- by the server configuration above. Useful when disabling
-            -- certain features of an LSP (for example, turning off formatting for ts_ls)
-            server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-            require('lspconfig')[server_name].setup(server)
-          end,
-        },
+        automatic_enable = true,
       }
     end,
   },
@@ -1471,7 +1466,7 @@ require('lazy').setup({
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
 
   { -- Collection of various small independent plugins/modules
-    'echasnovski/mini.nvim',
+    'nvim-mini/mini.nvim',
     config = function()
       -- Better Around/Inside textobjects
       --
@@ -1520,7 +1515,7 @@ require('lazy').setup({
       end
 
       -- ... and there is more!
-      --  Check out: https://github.com/echasnovski/mini.nvim
+      --  Check out: https://github.com/nvim-mini/mini.nvim
     end,
   },
   { -- Highlight, edit, and navigate code
