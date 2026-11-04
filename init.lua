@@ -839,7 +839,7 @@ require('lazy').setup({
     "NeogitOrg/neogit",
     dependencies = {
       "nvim-lua/plenary.nvim",  -- required
-      "sindrets/diffview.nvim", -- optional - Diff integration
+      "esmuellert/codediff.nvim", -- optional - Diff integration
 
       -- Only one of these is needed.
       "nvim-telescope/telescope.nvim", -- optional
@@ -848,7 +848,10 @@ require('lazy').setup({
     },
     -- set up leader ng for neogit
     keys = { { "<leader>ng", ":Neogit<CR>", desc = "Neogit" } },
-    config = true
+    opts = {
+      integrations = { codediff = true },
+      diff_viewer = "codediff",
+    },
   },
   -- {
   --   "willothy/flatten.nvim",
@@ -860,36 +863,37 @@ require('lazy').setup({
   --   priority = 1001,
   -- },
   {
-    "sindrets/diffview.nvim",
-    dependencies = {
-      "nvim-tree/nvim-web-devicons",
-    },
-    -- Remove cmd to load eagerly, or use keys to lazy-load with keymaps
+    "esmuellert/codediff.nvim",
+    cmd = "CodeDiff",
     keys = {
-      { "<leader>do", ":DiffviewOpen<CR>", desc = "Open Diffview" },
+      { "<leader>do", "<cmd>CodeDiff<CR>", desc = "Open CodeDiff" },
       {
         "<leader>dc",
         function()
-          if vim.bo.filetype == "DiffviewFiles" or vim.bo.filetype == "DiffviewFileHistory" then
-            vim.cmd("DiffviewClose")
+          if vim.g.codediff_open then
+            vim.cmd("tabclose")
           else
-            print("No Diffview open to close")
+            print("No CodeDiff open")
           end
         end,
-        desc = "Close Diffview"
+        desc = "Close CodeDiff",
       },
     },
     config = function()
-      require("diffview").setup({
-        enhanced_diff_hl = true,
-        use_icons = false,
-        view = {
-          default = {
-            layout = "diff2_horizontal",
-          },
+      -- codediff has no close command; track its state via its User autocmds for <leader>dc
+      vim.api.nvim_create_autocmd("User", {
+        pattern = "CodeDiffOpen",
+        callback = function() vim.g.codediff_open = true end,
+      })
+      vim.api.nvim_create_autocmd("User", {
+        pattern = "CodeDiffClose",
+        callback = function() vim.g.codediff_open = false end,
+      })
+      require("codediff").setup({
+        diff = {
+          hide_merge_artifacts = true,
         },
       })
-      -- Keymaps are now handled by the 'keys' field, so no need to set them here
     end,
   },
   {

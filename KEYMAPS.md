@@ -49,8 +49,12 @@ Leader key: `Space`
 | `<leader>gg` | n | Grep in git changed files |
 | `<leader>lg` | n | LazyGit |
 | `<leader>ng` | n | Neogit |
-| `<leader>do` | n | Diffview open |
-| `<leader>dc` | n | Diffview close |
+| `<leader>do` | n | CodeDiff open |
+| `<leader>dc` | n | CodeDiff close |
+
+Inside a CodeDiff view: `q` quit, `t` toggle layout, `gc` compact, `-` stage/unstage file, `<leader>hs` / `<leader>hu` / `<leader>hr` stage / unstage / discard hunk, `]f` / `[f` next / prev file, `g?` help.
+
+Conflict view: `<leader>co` / `<leader>ct` / `<leader>cb` / `<leader>cx` accept current / incoming / both / none. Uppercase variants (`<leader>cO`, `<leader>cT`, `<leader>cB`, `<leader>cX`) apply to the whole file. `]x` / `[x` jump between conflicts.
 | `]c` | n | Next git hunk |
 | `[c` | n | Previous git hunk |
 
